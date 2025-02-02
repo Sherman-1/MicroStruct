@@ -1,7 +1,6 @@
 mod args;
 
-use pdb_io::parse_pdb;
-use metrics::{radius_of_gyration, bounding_box_volume, contact_order, plddt_statistics};
+use metrics::{radius_of_gyration, bounding_box_volume, contact_order, plddt_statistics, get_ca_atoms, calc_sasa_from_parsed_pdb};
 use rayon::prelude::*;
 use std::path::Path;
 use std::fs;
@@ -10,29 +9,34 @@ use rayon::ThreadPoolBuilder;
 use args::parse_arguments;
 use std::fs::OpenOptions;
 use std::io::Write;
+use pdb_io::{parse_pdb};
 
 
-fn process_pdb_file(file_path: &str) -> (String, f32, f32, f32, f32, f32, f32, f32, usize) {
-
+pub fn process_pdb_file(file_path: &str) -> (String, f32, f32, f32, f32, f32, f32, f32, usize) {
+    // Parse the PDB file.
     let pdb = parse_pdb(file_path).expect("Failed to parse PDB file");
-    let rg = radius_of_gyration(&pdb);
-    let vol = bounding_box_volume(&pdb);
-    let co = contact_order(&pdb);
-    let (mean_plddt, plddt_50, plddt_70, plddt_90) = plddt_statistics(&pdb); // Unpack to (f32,f32,f32,f32)
 
-    
+    let ca_atoms = get_ca_atoms(&pdb);
+
+    let rg = radius_of_gyration(&ca_atoms);
+    let vol = bounding_box_volume(&ca_atoms);
+    let co = contact_order(&ca_atoms);
+    let (mean_plddt, plddt_50, plddt_70, plddt_90) = plddt_statistics(&ca_atoms);
+
+    // Extract the file stem for naming purposes.
     let file_stem = Path::new(file_path)
         .file_stem()
         .and_then(|stem| stem.to_str())
         .unwrap_or("unknown")
         .to_string();
 
-    let length = pdb.ca_coords.len();
+    let length = ca_atoms.len();
 
     (file_stem, rg, vol, co, mean_plddt, plddt_50, plddt_70, plddt_90, length)
 }
 
 fn append_to_file(file_path: &str, output: &str) {
+
     let mut file = OpenOptions::new()
         .append(true)   // Enable appending
         .create(true)   // Create file if it doesn't exist

@@ -6,3 +6,4 @@ edition = "2018"
 [dependencies]
 pdb-io = { path = "../pdb-io" }
 half = "2.3"
+ndarray = "0.16.1" 
