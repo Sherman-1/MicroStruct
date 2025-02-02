@@ -92,9 +92,13 @@ fn main() {
             .collect()
     });
         
-    let output: String = results.iter()
-        .map(|(id, rg, vol, co, pmean, p50, p70, p90, len)| format!("{};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{}\n", id, rg, vol, co, pmean, p50, p70, p90, len))
-        .collect();
+    let output: String = results
+        .iter()
+        .map(|(id, rg, vol, co, pmean, p50, p70, p90, len)| {
+            format!("{};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{}", id, rg, vol, co, pmean, p50, p70, p90, len)
+        })
+        .collect::<Vec<String>>() 
+        .join("\n"); 
 
     
     append_to_file(&config.output_file, &output);

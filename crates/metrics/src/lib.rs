@@ -56,9 +56,9 @@ pub fn plddt_statistics(pdb: &ParsedPDB) -> (f32, f32, f32, f32) {
         });
 
     let mean_plddt = sum_plddt / n as f32;
-    let fraction_50 = count_50 as f32 / n as f32;
-    let fraction_70 = count_70 as f32 / n as f32;
-    let fraction_90 = count_90 as f32 / n as f32;
+    let fraction_50 = count_50 as f32 / n as f32 * 100.0;
+    let fraction_70 = count_70 as f32 / n as f32 * 100.0;
+    let fraction_90 = count_90 as f32 / n as f32 * 100.0;
 
     (mean_plddt, fraction_50, fraction_70, fraction_90)
 
