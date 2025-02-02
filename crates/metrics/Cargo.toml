@@ -1,0 +1,8 @@
+[package]
+name = "metrics"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+pdb-io = { path = "../pdb-io" }
+half = "2.3"
