@@ -18,7 +18,7 @@ pub fn radius_of_gyration(pdb: &ParsedPDB) -> f32 {
     let cy = sum_y / n as f32;
     let cz = sum_z / n as f32;
 
-    // Compute average distance^2 to the center of geometry
+    // Compute sum of square distances
     let mut sum_dist_sq = 0.0;
     for ca in &pdb.ca_coords {
         let dx = ca.x - cx;
@@ -29,6 +29,41 @@ pub fn radius_of_gyration(pdb: &ParsedPDB) -> f32 {
 
     (sum_dist_sq / n as f32).sqrt()
 }
+
+pub fn plddt_statistics(pdb: &ParsedPDB) -> (f32, f32, f32, f32) {
+    /* Returns:
+        - mean pLDDT
+        - fraction of residues over 50 pLDDT
+        - fraction of residues over 70 pLDDT
+        - fraction of residues over 90 pLDDT    
+    */
+
+    let n = pdb.ca_coords.len();
+    if n == 0 {
+        return (0.0, 0.0, 0.0, 0.0);
+    }
+
+    let (sum_plddt, count_50, count_70, count_90) = pdb
+        .ca_coords
+        .iter()
+        .fold((0.0, 0, 0, 0), |(sum, c50, c70, c90), ca| {
+            (
+                sum + ca.bfactor,
+                c50 + (ca.bfactor > 50.0) as usize,
+                c70 + (ca.bfactor > 70.0) as usize,
+                c90 + (ca.bfactor > 90.0) as usize,
+            )
+        });
+
+    let mean_plddt = sum_plddt / n as f32;
+    let fraction_50 = count_50 as f32 / n as f32;
+    let fraction_70 = count_70 as f32 / n as f32;
+    let fraction_90 = count_90 as f32 / n as f32;
+
+    (mean_plddt, fraction_50, fraction_70, fraction_90)
+
+}
+
 
 pub fn bounding_box_volume(pdb: &ParsedPDB) -> f32 {
     let n = pdb.ca_coords.len();
@@ -60,7 +95,6 @@ pub fn bounding_box_volume(pdb: &ParsedPDB) -> f32 {
 }
 
 pub fn contact_order(pdb: &ParsedPDB) -> f32 {
-
 
     // Based on https://en.wikipedia.org/wiki/Contact_order definition 
 

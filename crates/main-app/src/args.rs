@@ -4,6 +4,7 @@ pub struct Config {
     pub num_cpus: usize,
     pub pdb_dir: String,
     pub output_file: String,
+    pub subset: Option<usize>
 }
 
 pub fn parse_arguments() -> Config {
@@ -35,9 +36,17 @@ pub fn parse_arguments() -> Config {
                 .help("Path to the output CSV file")
                 .default_value("/store/EQUIPES/BIM/MEMBERS/simon.herman/MicroStruct/results.csv")
         )
+        .arg(
+            Arg::new("subset")
+                .short('s')
+                .long("subset")
+                .value_name("SUBSET")
+                .help("Number of random PDB files to process (optional)")
+                .required(false) 
+        )
         .get_matches();
 
-            // Convert arguments using `.get_one::<T>()`
+            
     let num_cpus: usize = matches.get_one::<String>("cpus")
         .unwrap()
         .parse::<usize>()
@@ -48,10 +57,14 @@ pub fn parse_arguments() -> Config {
     let output_file = matches.get_one::<String>("output")
         .unwrap()
         .to_string();
+    let subset: Option<usize> = matches.get_one::<String>("subset")
+        .and_then(|s| s.parse::<usize>().ok()); 
+
 
     Config {
         num_cpus,
         pdb_dir,
         output_file,
+        subset
     }
 }
