@@ -8,9 +8,10 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "metrics",
- "pdb-io",
+ "pdb_io",
  "rand",
  "rayon",
+ "sasa",
 ]
 
 [[package]]
@@ -329,7 +330,7 @@ version = "0.1.0"
 dependencies = [
  "half",
  "ndarray",
- "pdb-io",
+ "pdb_io",
 ]
 
 [[package]]
@@ -445,7 +446,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
-name = "pdb-io"
+name = "pdb_io"
 version = "0.1.0"
 dependencies = [
  "half",
