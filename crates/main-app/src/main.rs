@@ -9,7 +9,7 @@ use rayon::ThreadPoolBuilder;
 use args::parse_arguments;
 use std::fs::OpenOptions;
 use std::io::Write;
-use pdb_io::{parse_pdb};
+use pdb_io::parse_pdb;
 
 
 pub fn process_pdb_file(file_path: &str) -> (String, f32, f32, f32, f32, f32, f32, f32, usize) {

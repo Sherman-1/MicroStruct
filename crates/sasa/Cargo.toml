@@ -1,0 +1,19 @@
+[package]
+name = "sasa"
+version = "0.2.4"
+edition = "2018"
+description = "RustSASA is a Rust library for computing the absolute solvent accessible surface area (ASA/SASA) of each atom in a given protein structure using the Shrake-Rupley algorithm."
+readme = "README.md"
+repository = "https://github.com/maxall41/RustSASA"
+keywords = ["Rust", "Bioinformatics", "SASA"]
+documentation = "https://docs.rs/rust-sasa/latest/rust_sasa/"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pdbtbx = "0.12.0"
+rstar = "0.12.0"
+nalgebra = "0.33.0"
+rayon = "1.10.0"
+snafu = "0.8.4"
+lazy_static = "1.5.0"
+

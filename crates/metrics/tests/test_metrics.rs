@@ -1,10 +1,10 @@
-use pdb_io::{parse_pdb};
+use pdb_io::parse_pdb;
 use metrics::{radius_of_gyration, 
     bounding_box_volume, 
     contact_order, 
     plddt_statistics, 
     get_ca_atoms};
-use metrics::sasa::{calc_sasa_from_parsed_pdb,SasaMode};
+//use metrics::sasa::{calc_sasa_from_parsed_pdb,SasaMode};
 
 #[test]
 fn test_metrics_basic() {
@@ -17,7 +17,7 @@ fn test_metrics_basic() {
     let co = contact_order(&ca_atoms);
     let plddt = plddt_statistics(&ca_atoms);
 
-    let sasa = calc_sasa_from_parsed_pdb(&pdb, 10, SasaMode::Full);
+    //let sasa = calc_sasa_from_parsed_pdb(&pdb, 10, SasaMode::Full);
 
 
     assert!(rg >= 0.0);
@@ -25,10 +25,6 @@ fn test_metrics_basic() {
     assert!(co >= 0.0);
 
     println!("Radius : {rg}, Volume : {vol}, Contact : {co}, pLDDT : {plddt:?}");
-
-    for value in sasa.iter() {
-        println!("{}", value);
-    }
     
 
 }

@@ -1,6 +1,6 @@
 use pdb_io::ParsedPDB;
 use pdb_io::AtomCoordinate;
-pub mod sasa;
+//pub mod sasa;
 
 
 pub fn get_ca_atoms<'a>(pdb: &'a ParsedPDB) -> Vec<&'a AtomCoordinate> {

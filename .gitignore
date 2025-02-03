@@ -1,4 +1,7 @@
 crates/target
 *.csv
-*.pdb
+*.pd    b
 *.sif
+*.cif
+*.pdb
+data/
