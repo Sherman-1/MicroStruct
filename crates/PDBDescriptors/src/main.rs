@@ -1,15 +1,16 @@
 mod args;
 
-use metrics::{radius_of_gyration, bounding_box_volume, contact_order, plddt_statistics, get_ca_atoms, calc_sasa_from_parsed_pdb};
-use rayon::prelude::*;
-use std::path::Path;
-use std::fs;
-use rand::prelude::*; 
-use rayon::ThreadPoolBuilder;
-use args::parse_arguments;
-use std::fs::OpenOptions;
+use std::fs::{self, OpenOptions};
 use std::io::Write;
+use std::path::Path;
+use std::sync::mpsc;
+use std::thread;
+use rand::prelude::IndexedRandom;
+use rand::rng; 
+
+use metrics::{get_ca_atoms, radius_of_gyration, bounding_box_volume, contact_order, plddt_statistics};
 use pdb_io::parse_pdb;
+use args::parse_arguments;
 
 
 pub fn process_pdb_file(file_path: &str) -> (String, f32, f32, f32, f32, f32, f32, f32, usize) {
@@ -23,7 +24,6 @@ pub fn process_pdb_file(file_path: &str) -> (String, f32, f32, f32, f32, f32, f3
     let co = contact_order(&ca_atoms);
     let (mean_plddt, plddt_50, plddt_70, plddt_90) = plddt_statistics(&ca_atoms);
 
-    // Extract the file stem for naming purposes.
     let file_stem = Path::new(file_path)
         .file_stem()
         .and_then(|stem| stem.to_str())
@@ -36,7 +36,6 @@ pub fn process_pdb_file(file_path: &str) -> (String, f32, f32, f32, f32, f32, f3
 }
 
 fn append_to_file(file_path: &str, output: &str) {
-
     let mut file = OpenOptions::new()
         .append(true)   // Enable appending
         .create(true)   // Create file if it doesn't exist
@@ -55,12 +54,8 @@ fn main() {
         config.num_cpus, config.pdb_dir, config.output_file
     );
 
-    fs::write(&config.output_file, "ID;Gyration_Radius;Box_Volume;Contact_Order;mean_pLDDT;pLDDT_50;pLDDT_70;pLDDT_90;seq_len\n").expect("Failed to write CSV header");
-
-    let pool = ThreadPoolBuilder::new()
-        .num_threads(config.num_cpus)
-        .build()
-        .expect("Failed to create thread pool");
+    fs::write(&config.output_file, "ID;Gyration_Radius;Box_Volume;Contact_Order;mean_pLDDT;pLDDT_50;pLDDT_70;pLDDT_90;seq_len\n")
+        .expect("Failed to write CSV header");
 
     let pdb_files: Vec<String> = fs::read_dir(&config.pdb_dir)
         .expect("Failed to read PDB directory")
@@ -79,33 +74,43 @@ fn main() {
         return;
     };
 
-    let files_to_process = if let Some(n) = config.subset {
-        let mut _rng = rand::rng();
+    let files_to_process: Vec<String> = if let Some(n) = config.subset {
+        let mut _rng = rng(); // Ensure mutable RNG
         pdb_files
-            .choose_multiple(&mut _rng, n.min(pdb_files.len()))
-            .cloned()
-            .collect()
+            .choose_multiple(&mut _rng, n.min(pdb_files.len())) // Trait method explicitly used
+            .cloned() // Convert references to owned Strings
+            .collect() // Collect into a Vec<String>
     } else {
-        pdb_files
+        pdb_files.clone() // Ensure ownership consistency
     };
-        
-    let results: Vec<_> = pool.install(|| {
-        files_to_process
-            .par_iter()
-            .map(|file| process_pdb_file(file))
-            .collect()
-    });
-        
-    let output: String = results
-        .iter()
-        .map(|(id, rg, vol, co, pmean, p50, p70, p90, len)| {
-            format!("{};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{}", id, rg, vol, co, pmean, p50, p70, p90, len)
-        })
-        .collect::<Vec<String>>() 
-        .join("\n"); 
 
-    
-    append_to_file(&config.output_file, &output);
+
+    // Create a channel for inter-process communication.
+    let (tx, rx) = mpsc::channel();
+
+    // Spawn a process for each file.
+    let files_clone = files_to_process.clone();
+    for file in files_clone {
+        let tx = tx.clone();
+        let output_file = config.output_file.clone();
+
+        thread::spawn(move || {
+            let result = process_pdb_file(&file);
+            let output = format!(
+                "{};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{:.4};{}",
+                result.0, result.1, result.2, result.3, result.4, result.5, result.6, result.7, result.8
+            );
+
+            append_to_file(&output_file, &output);
+
+            tx.send(()).expect("Failed to send completion signal");
+        });
+    }
+
+    // Wait for all processes to finish.
+    for _ in 0..files_to_process.len() {
+        rx.recv().expect("Failed to receive completion signal");
+    }
 
     println!("Processing complete. Results saved to {}", &config.output_file);
 }

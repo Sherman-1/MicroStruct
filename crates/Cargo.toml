@@ -1,2 +1,2 @@
 [workspace]
-members = ["main-app","metrics", "pdb-io","sasa"]
+members = ["PDBDescriptors","metrics", "pdb-io"]

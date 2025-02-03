@@ -1,4 +1,4 @@
-const FIXED_FOR_EXAMPLE: [f32; 2622] = [
+const _FIXED_FOR_EXAMPLE: [f32; 2622] = [
     48.24325, 2.5255642, 3.7883465, 12.627821, 16.90931, 20.204514, 50.32727, 66.92745, 2.3533294,
     7.576693, 0.0, 31.569553, 8.454655, 37.883465, 25.255642, 1.1766647, 0.0, 0.0, 17.67895,
     16.90931, 27.781206, 23.99286, 1.1766647, 2.5255642, 0.0, 6.3139105, 0.0, 8.839475, 38.045948,
@@ -269,7 +269,7 @@ mod tests {
         let start = Instant::now();
         let sasa = calculate_sasa_internal(&atoms, None, None);
         let duration = start.elapsed();
-        assert_eq!(sasa, FIXED_FOR_EXAMPLE.to_vec());
+        assert_eq!(sasa, _FIXED_FOR_EXAMPLE.to_vec());
         println!("Time elapsed (INTERNAL): {:?}", duration);
     }
     #[test]
