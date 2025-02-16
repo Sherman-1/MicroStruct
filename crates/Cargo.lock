@@ -331,6 +331,7 @@ dependencies = [
  "half",
  "ndarray",
  "pdb_io",
+ "pdbtbx",
 ]
 
 [[package]]

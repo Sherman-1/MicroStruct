@@ -221,6 +221,45 @@ pub fn calculate_sasa_internal(
         .collect()
 }
 
+
+pub fn calculate_sasa_internal_single_thread(
+    atoms: &[Atom],
+    in_probe_radius: Option<f32>,
+    in_n_points: Option<usize>,
+) -> Vec<f32> {
+    
+    let probe_radius = in_probe_radius.unwrap_or(1.4);
+    let n_points = in_n_points.unwrap_or(100);
+
+    let sphere_points = generate_sphere_points(n_points);
+
+    let tree = RTree::bulk_load(atoms.to_vec());
+
+    let mut max_radii = 0.0;
+    for atom in atoms {
+        if atom.radius > max_radii {
+            max_radii = atom.radius;
+        }
+    }
+
+    atoms.iter().map(|atom| {
+        let mut accessible_points = 0;
+        for sphere_point in &sphere_points {
+            let test_point = atom.position + sphere_point * (atom.radius + probe_radius);
+            if is_accessible_rstar(&test_point, atom, &tree, probe_radius, max_radii) {
+                accessible_points += 1;
+            }
+        }
+
+        
+        4.0 * std::f32::consts::PI
+            * (atom.radius + probe_radius).powi(2)
+            * (accessible_points as f32)
+            / (n_points as f32)
+    })
+    .collect()
+}
+
 /// This function calculates the SASA for a given protein. The output level can be specified with the level attribute e.g: (SASALevel::Atom,SASALevel::Residue,etc...).
 /// Probe radius and n_points can be customized if not customized will default to 1.4, and 100 respectively.
 /// If you want more fine-grained control you may want to use [calculate_sasa_internal] instead.
@@ -242,6 +281,7 @@ pub fn calculate_sasa(
 
     let mut atoms = vec![];
     let mut parent_to_atoms = HashMap::new();
+
     match level {
         SASALevel::Atom => {
             for atom in pdb.atoms() {
@@ -318,7 +358,8 @@ pub fn calculate_sasa(
             }
         }
     }
-    let atom_sasa = calculate_sasa_internal(&atoms, probe_radius, n_points);
+
+    let atom_sasa = calculate_sasa_internal_single_thread(&atoms, probe_radius, n_points);
     return match level {
         SASALevel::Atom => Ok(SASAResult::Atom(atom_sasa)),
         SASALevel::Chain => {

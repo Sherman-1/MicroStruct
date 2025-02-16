@@ -274,6 +274,7 @@ mod tests {
     }
     #[test]
     fn external_test() {
+        
         let (pdb, _errors) = pdbtbx::open("/store/EQUIPES/BIM/MEMBERS/simon.herman/MicroStruct/data/example.cif").unwrap();
         let protein_sasa = calculate_sasa(&pdb, None, None, SASALevel::Protein).unwrap();
         let chain_sasa = calculate_sasa(&pdb, None, None, SASALevel::Chain).unwrap();

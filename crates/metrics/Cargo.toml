@@ -7,3 +7,4 @@ edition = "2018"
 pdb_io = { path = "../pdb_io" }
 half = "2.3"
 ndarray = "0.16.1" 
+pdbtbx = "0.12.0"
