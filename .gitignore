@@ -5,3 +5,4 @@ crates/target
 *.cif
 *.pdb
 data/
+**/*.tsv
